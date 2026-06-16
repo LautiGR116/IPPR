@@ -1,0 +1,141 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum SessionStatus {
+  ACTIVE
+  COMPLETED
+}
+
+enum ModuleStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETED
+}
+
+model Participant {
+  id        String        @id @default(cuid())
+  code      String        @unique
+  name      String
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  sessions  TestSession[]
+}
+
+model Test {
+  id          String        @id @default(cuid())
+  slug        String        @unique
+  name        String
+  description String?
+  version     String
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  modules     TestModule[]
+  sessions    TestSession[]
+}
+
+model TestModule {
+  id        String           @id @default(cuid())
+  testId    String
+  key       String
+  title     String
+  icon      String?
+  order     Int
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+  test      Test             @relation(fields: [testId], references: [id], onDelete: Cascade)
+  items     TestItem[]
+  progress  ModuleProgress[]
+  topPicks  TopPreference[]
+
+  @@unique([testId, key])
+  @@unique([testId, order])
+}
+
+model TestItem {
+  id         String          @id @default(cuid())
+  moduleId   String
+  key        String
+  prompt     String
+  sourceText String
+  kind       String          @default("activity")
+  order      Int
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
+  module     TestModule      @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  responses  ItemResponse[]
+  topPicks   TopPreference[]
+
+  @@unique([moduleId, key])
+  @@unique([moduleId, order])
+}
+
+model TestSession {
+  id                 String           @id @default(cuid())
+  participantId      String
+  testId             String
+  status             SessionStatus    @default(ACTIVE)
+  currentModuleOrder Int              @default(0)
+  startedAt          DateTime         @default(now())
+  completedAt        DateTime?
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+  participant        Participant      @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  test               Test             @relation(fields: [testId], references: [id], onDelete: Cascade)
+  responses          ItemResponse[]
+  progress           ModuleProgress[]
+  topPicks           TopPreference[]
+
+  @@index([participantId, testId, status])
+}
+
+model ItemResponse {
+  id           String      @id @default(cuid())
+  sessionId    String
+  itemId       String
+  category     String
+  numericValue Int
+  answeredAt   DateTime    @default(now())
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  session      TestSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  item         TestItem    @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  @@unique([sessionId, itemId])
+}
+
+model TopPreference {
+  id        String      @id @default(cuid())
+  sessionId String
+  moduleId  String
+  itemId    String
+  rank      Int
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  session   TestSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  module    TestModule  @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  item      TestItem    @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  @@unique([sessionId, moduleId, rank])
+  @@unique([sessionId, moduleId, itemId])
+}
+
+model ModuleProgress {
+  id            String       @id @default(cuid())
+  sessionId     String
+  moduleId      String
+  status        ModuleStatus @default(NOT_STARTED)
+  answeredCount Int          @default(0)
+  topCount      Int          @default(0)
+  completedAt   DateTime?
+  updatedAt     DateTime     @updatedAt
+  session       TestSession  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  module        TestModule   @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+
+  @@unique([sessionId, moduleId])
+}
