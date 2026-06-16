@@ -7,7 +7,7 @@
     "build": "prisma generate && next build",
     "start": "next start",
     "typecheck": "tsc --noEmit",
-    "db:push": "sqlite3 prisma/dev.db \".read prisma/init.sql\"",
+    "db:push": "prisma db push",
     "db:init": "npm run db:push && npm run db:seed",
     "db:seed": "tsx prisma/seed.ts",
     "studio": "prisma studio"
