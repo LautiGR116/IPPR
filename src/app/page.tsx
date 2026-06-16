@@ -37,7 +37,7 @@ export default function HomePage() {
 
   return (
     <main className="min-h-screen px-4 py-5 sm:px-6 sm:py-8">
-      <section className="mx-auto flex min-h-[calc(100vh-2.5rem)] w-full max-w-5xl flex-col justify-center gap-6">
+      <section className="mx-auto flex min-h-[calc(100vh-2.5rem)] w-full max-w-5xl flex-col justify-center gap-6 lg:items-center lg:text-center">
         <div className="max-w-2xl">
           <p className="text-xs font-bold uppercase tracking-wide text-primary">
             IPPR
@@ -53,7 +53,7 @@ export default function HomePage() {
 
         <form
           onSubmit={startSession}
-          className="w-full max-w-xl rounded-lg border bg-card p-4 shadow-sm sm:p-6"
+          className="w-full max-w-xl rounded-lg border bg-card p-4 text-left shadow-sm sm:p-6"
         >
           <div className="grid gap-4">
             <label className="grid gap-2">
